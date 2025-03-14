@@ -17,8 +17,9 @@ services:
     volumes:
       # 存储卷位置/var/lib/docker/volumes/fortune_fortune_mysql_data/_data
       - 'fortune_mysql_data:/var/lib/mysql'
+      - 'fortune_redis_data:/redis'
     ports:
-      # 以下端口分别是：http、数据库、redis、java后端
+      # 以下端口分别是: http、数据库、redis、java后端
       - '46031:80'
       - '46032:3306'
       - '46033:6379'
@@ -30,3 +31,4 @@ services:
 
 volumes:
   fortune_mysql_data:
+  fortune_redis_data:
