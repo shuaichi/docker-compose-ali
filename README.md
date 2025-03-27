@@ -23,3 +23,5 @@ redis地址、端口、密码（如果有的话）
 ```bash
 docker-compose -f docker-compose-only-app.yaml up -d
 ```
+# 群晖部署教程
+https://github.com/shuaichi/docker-compose-ali/blob/main/synology.md/synology.md
