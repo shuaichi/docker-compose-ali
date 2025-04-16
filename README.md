@@ -11,7 +11,7 @@ docker-compose -f docker-compose-all-in-one.yaml up -d
 ```sql
 CREATE DATABASE IF NOT EXISTS fortune_boot CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
-使用这个数据库，执行 sql 脚本：https://github.com/shuaichi/FortuneBoot-Server/blob/master/sql/fortune-all-20250306.sql
+使用这个数据库，执行 sql 脚本：https://github.com/shuaichi/FortuneBoot-Server/blob/master/sql/fortune-all.sql
 
 下载 docker-compose-only-app.yaml并修改：
 ```
