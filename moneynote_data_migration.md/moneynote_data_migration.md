@@ -26,13 +26,15 @@
 
 ## 1.2、确认sql中是否有创建moneynote的命令
 
-首先查看导出的sql有没有create database命令，如果没有，则需要在脚本最见前增加以下sql：
+查看导出的sql有没有create database命令，如果没有，则需要在脚本最见前增加以下sql：
 
 ```sql
 CREATE DATABASE IF NOT EXISTS moneynote CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+查看导出的sql有没有use命令，如果没有则需要在创建数据库命令下添加以下sql：
+```sql
 USE moneynote;
 ```
-
 ![image](assets/image-20250421235508-yisavii.png)
 
 然后保存sql脚本，并使用数据库工具连接好记的数据库实例，并执行这个脚本，这里依然以phpmyadmin为例：
