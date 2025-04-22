@@ -30,6 +30,7 @@
 
 ```sql
 CREATE DATABASE IF NOT EXISTS moneynote CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE moneynote;
 ```
 
 ![image](assets/image-20250421235508-yisavii.png)
