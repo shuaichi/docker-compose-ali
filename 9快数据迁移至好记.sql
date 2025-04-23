@@ -1,7 +1,7 @@
 -- 以下为环境变量，这里需要修改
 -- ---------- begin ------------
 -- 使用新的数据库
-use fortune_boot;
+USE fortune_boot;
 -- 新的数据库
 SET @new_schema = 'fortune_boot';
 -- 旧的数据库
@@ -19,6 +19,14 @@ DELIMITER $$
 
 CREATE PROCEDURE migrate_data()
 BEGIN
+    -- ========== 开启事务 以防执行失败出现脏数据 ==========
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
     -- ========== 第一阶段 设置各个表的最大ID ==========
     -- 获取新分组最大ID
     SET @query = CONCAT(
@@ -188,9 +196,9 @@ BEGIN
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_account ',
         '(account_id, card_no, account_name, balance, bill_day, can_expense, can_income, ',
-        'can_transfer_out, can_transfer_in, credit_limit, currency_code, enable, ',
+        'can_transfer_out, can_transfer_in, credit_limit, currency_code, recycle_bin, ',
         'include, apr, initial_balance, account_type, group_id, sort, remark, ',
-        'creator_id, updater_id, create_time, update_time, recycle_bin) ',
+        'creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @account_shift, ',  -- 应用账户ID偏移
         'old.no, '
@@ -208,7 +216,9 @@ BEGIN
         'old.can_transfer_to, ',
         'old.credit_limit, ',
         'old.currency_code, ',
-        'old.enable, ',
+        'CASE old.enable ',
+            'WHEN 1 THEN 0 ',  -- 类型映射示例
+            'ELSE 1 END, ',
         'old.include, ',
         'old.apr, ',
         'CAST(old.initial_balance AS DECIMAL(20,4)), ',
@@ -223,8 +233,7 @@ BEGIN
         @new_user_id, ', ',  -- creator_id
         @new_user_id, ', ',  -- updater_id
         'NOW(), ',  -- create_time
-        'NOW(), ',  -- update_time
-        'old.deleted ',
+        'NOW() ',  -- update_time
         'FROM ', @old_schema, '.t_user_account AS old ',
         'WHERE old.group_id IN (',
             'SELECT group_id FROM ', @old_schema, '.t_user_user_group_relation ',
@@ -258,7 +267,7 @@ BEGIN
         '(book_id, group_id, book_name, default_currency, ',
         'default_expense_account_id, default_income_account_id, ',
         'default_transfer_out_account_id, default_transfer_in_account_id, ',
-        'sort, enable, recycle_bin, remark, ',
+        'sort, recycle_bin, remark, ',
         'creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @book_shift, ',  -- 应用账本ID偏移
@@ -270,8 +279,9 @@ BEGIN
         'IF(old.default_transfer_from_account_id IS NULL, NULL, old.default_transfer_from_account_id + @account_shift), ',
         'IF(old.default_transfer_to_account_id IS NULL, NULL, old.default_transfer_to_account_id + @account_shift), ',
         'old.ranking, ',
-        'CAST(old.enable AS UNSIGNED), ',  -- bit转tinyint
-        '0, ',  -- recycle_bin默认值
+        'CASE old.enable ',
+            'WHEN 1 THEN 0 ',  -- 类型映射示例
+            'ELSE 1 END, ',
         'IFNULL(old.notes, ''''), ',
         @new_user_id, ', ',  -- creator_id
         @new_user_id, ', ',  -- updater_id
@@ -308,7 +318,7 @@ BEGIN
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_category ',
         '(category_id, category_type, category_name, book_id, parent_id, ',
-        'sort, enable, remark, creator_id, updater_id, create_time, update_time) ',
+        'sort, recycle_bin, remark, creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @category_shift, ',  -- 应用分类ID偏移
         'CASE old.type ',              -- 类型转换
@@ -319,7 +329,9 @@ BEGIN
         'old.book_id + @book_shift, ', -- 应用账本偏移
         'IFNULL(old.parent_id + @category_shift, -1), ',  -- 父级ID偏移，默认0
         'old.ranking, ',
-        'CAST(old.enable AS UNSIGNED), ',  -- bit转tinyint
+        'CASE old.enable ',
+            'WHEN 1 THEN 0 ',  -- 类型映射示例
+            'ELSE 1 END, ',
         'IFNULL(old.notes, ''''), ',
         @new_user_id, ', ',  -- creator_id
         @new_user_id, ', ',  -- updater_id
@@ -358,7 +370,7 @@ BEGIN
     -- ---------- 迁移交易对象 ----------
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_payee ',
-        '(payee_id, book_id, payee_name, can_expense, can_income, enable, ',
+        '(payee_id, book_id, payee_name, can_expense, can_income, recycle_bin, ',
         'sort, remark, creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @payee_shift, ',    -- 应用交易对象ID偏移
@@ -366,7 +378,9 @@ BEGIN
         'old.name, ',
         'CAST(old.can_expense AS UNSIGNED), ',  -- bit转tinyint
         'CAST(old.can_income AS UNSIGNED), ',
-        'CAST(old.enable AS UNSIGNED), ',
+        'CASE old.enable ',
+            'WHEN 1 THEN 0 ',  -- 类型映射示例
+            'ELSE 1 END, ',
         'old.ranking, ',
         'IFNULL(old.notes, ''''), ',
         @new_user_id, ', ',  -- creator_id
@@ -407,7 +421,7 @@ BEGIN
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_tag ',
         '(tag_id, tag_name, book_id, parent_id, can_expense, can_income, can_transfer, ',
-        'enable, sort, remark, creator_id, updater_id, create_time, update_time) ',
+        'recycle_bin, sort, remark, creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @tag_shift, ',      -- 应用标签ID偏移
         'old.name, ',
@@ -416,7 +430,9 @@ BEGIN
         'CAST(old.can_expense AS UNSIGNED), ',  -- bit转tinyint
         'CAST(old.can_income AS UNSIGNED), ',
         'CAST(old.can_transfer AS UNSIGNED), ',
-        'CAST(old.enable AS UNSIGNED), ',
+        'CASE old.enable ',
+            'WHEN 1 THEN 0 ',  -- 类型映射示例
+            'ELSE 1 END, ',
         'old.ranking, ',
         'IFNULL(old.notes, ''''), ',
         @new_user_id, ', ',  -- creator_id
@@ -527,13 +543,13 @@ BEGIN
         'CAST(old.amount AS DECIMAL(20,4)), ',  -- 精度转换
         @new_user_id, ', ',  -- creator_id
         @new_user_id, ', ',  -- updater_id
-        'b.create_time, ',  -- 使用关联账单的创建时间
-        'b.update_time, ',   -- 使用关联账单的更新时间
+        'FROM_UNIXTIME(b.create_time / 1000), ',  -- 使用关联账单的创建时间
+        'FROM_UNIXTIME(b.insert_at / 1000), ',    -- 使用关联账单的更新时间
         '0 ',                -- deleted默认值
         'FROM ', @old_schema, '.t_user_category_relation AS old ',
-        'JOIN ', @new_schema, '.fortune_bill AS b ',  -- 关联新账单表
-        'ON old.balance_flow_id + @bill_shift = b.bill_id ',
-        'WHERE b.bill_id IN (',
+        'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  -- 关联账单表
+        'ON old.balance_flow_id + @bill_shift = b.id ',
+        'WHERE b.id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_balance_flow AS tub ',
             'WHERE tub.book_id IN (',
                 'SELECT id FROM ', @old_schema, '.t_user_book ',
@@ -577,13 +593,13 @@ BEGIN
         'old.tag_id + @tag_shift, ',  -- 应用标签偏移
         @new_user_id, ', ',  -- creator_id
         @new_user_id, ', ',  -- updater_id
-        'b.create_time, ',  -- 使用关联账单的创建时间
-        'b.update_time, ',  -- 使用关联账单的更新时间
+        'FROM_UNIXTIME(b.create_time / 1000), ',  -- 使用关联账单的创建时间
+        'FROM_UNIXTIME(b.insert_at / 1000), ',    -- 使用关联账单的更新时间
         '0 '                -- deleted默认值
         'FROM ', @old_schema, '.t_user_tag_relation AS old ',
-        'JOIN ', @new_schema, '.fortune_bill AS b ',  -- 关联新账单表
-        'ON old.balance_flow_id + @bill_shift = b.bill_id ',
-        'WHERE b.bill_id IN (',
+        'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  -- 关联账单表
+        'ON old.balance_flow_id + @bill_shift = b.id ',
+        'WHERE b.id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_balance_flow AS tubf ',
             'WHERE tubf.book_id IN (',
                 'SELECT id FROM ', @old_schema, '.t_user_book as tub ',
@@ -666,6 +682,8 @@ BEGIN
     EXECUTE stmt;
     DEALLOCATE PREPARE stmt;
 
+    -- ========== 数据完成迁移 提交事务 ==========
+    COMMIT;
 END$$
 
 DELIMITER ;
