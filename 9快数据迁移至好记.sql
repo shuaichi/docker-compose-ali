@@ -549,7 +549,7 @@ BEGIN
         '0 ',                -- deleted默认值
         'FROM ', @old_schema, '.t_user_category_relation AS old ',
         'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  -- 关联账单表
-        'ON old.balance_flow_id + @bill_shift = b.id ',
+        'ON old.balance_flow_id = b.id ',
         'WHERE b.id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_balance_flow AS tub ',
             'WHERE tub.book_id IN (',
@@ -599,7 +599,7 @@ BEGIN
         '0 '                -- deleted默认值
         'FROM ', @old_schema, '.t_user_tag_relation AS old ',
         'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  -- 关联账单表
-        'ON old.balance_flow_id + @bill_shift = b.id ',
+        'ON old.balance_flow_id = b.id ',
         'WHERE b.id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_balance_flow AS tubf ',
             'WHERE tubf.book_id IN (',
@@ -693,3 +693,5 @@ CALL migrate_data();
 
 -- 清理存储过程
 DROP PROCEDURE migrate_data;
+
+
