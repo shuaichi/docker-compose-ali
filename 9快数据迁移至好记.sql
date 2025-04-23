@@ -196,7 +196,7 @@ BEGIN
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_account ',
         '(account_id, card_no, account_name, balance, bill_day, can_expense, can_income, ',
-        'can_transfer_out, can_transfer_in, credit_limit, currency_code, recycle_bin, ',
+        'can_transfer_out, can_transfer_in, credit_limit, currency_code, recycle_bin,enable, ',
         'include, apr, initial_balance, account_type, group_id, sort, remark, ',
         'creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
@@ -219,6 +219,7 @@ BEGIN
         'CASE old.enable ',
             'WHEN 1 THEN 0 ',  -- 类型映射示例
             'ELSE 1 END, ',
+        '1, '
         'old.include, ',
         'old.apr, ',
         'CAST(old.initial_balance AS DECIMAL(20,4)), ',
@@ -692,5 +693,3 @@ CALL migrate_data();
 
 -- 清理存储过程
 DROP PROCEDURE migrate_data;
-
-
