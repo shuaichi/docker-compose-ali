@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   fortune:
     # 容器名
@@ -7,6 +6,13 @@ services:
     image: 'registry.cn-hangzhou.aliyuncs.com/chishenjianglin/fortuneboot:all-in-one'
     # 环境变量
     environment:
+      # 数据库连接池账号密码，建议修改
+      - DRUID_USERNAME=${DRUID_USERNAME:-fortuneboot}
+      - DRUID_PASSWORD=${DRUID_PASSWORD:-123456}
+      # swagger文档开关，建议关闭，若要开启，把false改为true
+      - SWAGGER_ENABLE=${SWAGGER_ENABLE:-false}
+      # 时区，指定亚洲上海，如果是其他国家使用，改为对应国家的时区。
+      - TZ=${TZ:-Asia/Shanghai}
       # 数据库密码，建议修改
       # 注: MYSQL_ROOT_PASSWORD和DB_PASSWORD的值必须一样
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-Jk9Lm2XqPvZt8N7e}
