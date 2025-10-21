@@ -25,8 +25,10 @@ docker-compose -f docker-compose-only-app.yaml up -d
 ```
 # 部署教程
 
-群晖:https://www.fortuneboot.com/archives/qun-hui-bu-shu-wen-dang
-1panel:https://www.fortuneboot.com/archives/1panelbu-shu-hao-ji
+群晖:https://www.fortuneboot.com/archives/qun-hui-bu-shu-wen-dang    
+
+1panel:https://www.fortuneboot.com/archives/1panelbu-shu-hao-ji    
+
 宝塔:https://www.fortuneboot.com/archives/bao-ta-bu-shu-hao-ji
 
 # 9快记账数据迁移至好记记账
