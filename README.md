@@ -23,9 +23,12 @@ redis地址、端口、密码（如果有的话）
 ```bash
 docker-compose -f docker-compose-only-app.yaml up -d
 ```
-# 群晖部署教程
-https://github.com/shuaichi/docker-compose-ali/blob/main/synology.md/synology.md
-
+# 部署教程
+```url
+群晖:https://www.fortuneboot.com/archives/qun-hui-bu-shu-wen-dang
+1panel:https://www.fortuneboot.com/archives/1panelbu-shu-hao-ji
+宝塔:https://www.fortuneboot.com/archives/bao-ta-bu-shu-hao-ji
+```
 # 9快记账数据迁移至好记记账
 1、好记数据库依赖mysql8.0及以上版本，如果你是使用的5.7请先升级mysql版本后再升级。
 2、在9快数据库实例上创建一个新的schema，并执行上面创建数据库表的sql。
