@@ -27,9 +27,13 @@ docker-compose -f docker-compose-only-app.yaml up -d
 
 群晖:https://www.fortuneboot.com/archives/qun-hui-bu-shu-wen-dang    
 
+绿联:https://www.fortuneboot.com/archives/lu-lian-ugos-probu-shu-hao-ji
+
 1panel:https://www.fortuneboot.com/archives/1panelbu-shu-hao-ji    
 
 宝塔:https://www.fortuneboot.com/archives/bao-ta-bu-shu-hao-ji
+
+命令行:https://www.fortuneboot.com/archives/dockerming-ling-xing-bu-shu-hao-ji
 
 # 9快记账数据迁移至好记记账
 1、好记数据库依赖mysql8.0及以上版本，如果你是使用的5.7请先升级mysql版本后再升级。
