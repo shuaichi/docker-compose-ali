@@ -35,6 +35,8 @@ docker-compose -f docker-compose-only-app.yaml up -d
 
 宝塔:https://www.fortuneboot.com/archives/bao-ta-bu-shu-hao-ji
 
+CasaOS:https://www.fortuneboot.com/archives/casaosbu-shu-hao-ji
+
 命令行:https://www.fortuneboot.com/archives/dockerming-ling-xing-bu-shu-hao-ji
 
 # 9快记账数据迁移至好记记账
@@ -43,7 +45,7 @@ docker-compose -f docker-compose-only-app.yaml up -d
 
 2、在9快数据库实例上创建一个新的schema，并执行上面创建数据库表的sql。
 
-3、下载数据迁移脚本 https://github.com/shuaichi/docker-compose-ali/blob/main/9%E5%BF%AB%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E8%87%B3%E5%A5%BD%E8%AE%B0.sql
+3、下载数据迁移脚本:https://github.com/shuaichi/docker-compose-ali/blob/main/9%E5%BF%AB%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E8%87%B3%E5%A5%BD%E8%AE%B0.sql
 
 4、修改如下数据库脚本至自己的。
 
