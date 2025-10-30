@@ -39,6 +39,11 @@ CasaOS:https://www.fortuneboot.com/archives/casaosbu-shu-hao-ji
 
 命令行:https://www.fortuneboot.com/archives/dockerming-ling-xing-bu-shu-hao-ji
 
+# APP下载地址
+支持安卓和IOS，欢迎来试用。
+
+https://www.fortuneboot.com/archives/hao-ji-appxia-zai
+
 # 9快记账数据迁移至好记记账
 
 1、好记数据库依赖mysql8.0及以上版本，如果你是使用的5.7请先升级mysql版本后再升级。
