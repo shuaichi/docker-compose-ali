@@ -29,6 +29,8 @@ docker-compose -f docker-compose-only-app.yaml up -d
 
 绿联:https://www.fortuneboot.com/archives/lu-lian-ugos-probu-shu-hao-ji
 
+极空间:https://www.fortuneboot.com/archives/ji-kong-jian
+
 飞牛:https://www.fortuneboot.com/archives/fei-niu-osbu-shu-hao-ji
 
 1panel:https://www.fortuneboot.com/archives/1panelbu-shu-hao-ji    
