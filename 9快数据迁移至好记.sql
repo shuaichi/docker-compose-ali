@@ -682,6 +682,18 @@ BEGIN
     PREPARE stmt FROM @query;
     EXECUTE stmt;
     DEALLOCATE PREPARE stmt;
+    
+    -- ======== 最后处理默认分组冲突 ========
+    -- 清除新系统自带默认分组
+    SET @query = CONCAT(
+        'UPDATE ', @new_schema, '.fortune_user_group_relation ',
+        'SET default_group = 0 ',
+        'WHERE user_id = ', @new_user_id,
+        '  AND group_id < ', @group_shift
+    );
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 
     -- ========== 数据完成迁移 提交事务 ==========
     COMMIT;
