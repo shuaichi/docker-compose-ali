@@ -63,7 +63,7 @@ BEGIN
     -- ========== 开启事务 ==========
     START TRANSACTION;
 
-    -- ========== 第二阶段 迁移数据数据 ==========
+    -- ========== 第二阶段 迁移数据 ==========
     -- ---------- 迁移分组数据 ----------
     SET @query = CONCAT(
         'INSERT INTO ', @new_schema, '.fortune_group ',
@@ -73,7 +73,7 @@ BEGIN
                'old.default_currency_code, ',
                'old.enable, ',
                'old.notes, ',
-               'old.default_book_id + @book_shift, ',
+               'IF(old.default_book_id IS NULL OR old.default_book_id = 0, NULL, old.default_book_id + @book_shift), ', -- ✅ 修复0值风险
                 @new_user_id, ', ',  
                 @new_user_id, ', ',  
                 'NOW(), ',  
@@ -116,12 +116,12 @@ BEGIN
         'creator_id, updater_id, create_time, update_time) ',
         'SELECT ',
         'old.id + @account_shift, ',  
-        'old.no, ',          -- 修复：补充逗号
+        'old.no, ',          
         'old.name, ',
         'CAST(old.balance AS DECIMAL(20,4)), ',
-        'CASE WHEN old.bill_day IS NOT NULL THEN ',
+        'CASE WHEN old.bill_day IS NOT NULL AND old.bill_day > 0 THEN ', -- ✅ 修复了日期拼装BUG
             'STR_TO_DATE(',
-                'CONCAT(YEAR(NOW()), "-", LPAD(LEAST(old.bill_day, 12), 2, "0"), "-01"), ',  
+                'CONCAT(YEAR(NOW()), "-", LPAD(MONTH(NOW()), 2, "0"), "-", LPAD(LEAST(old.bill_day, 31), 2, "0")), ',  
                 '"%Y-%m-%d"',
             ') ',
         'ELSE NULL END, ',  
@@ -134,14 +134,14 @@ BEGIN
         'CASE old.enable ',
             'WHEN 1 THEN 0 ',  
             'ELSE 1 END, ',
-        '1, ',               -- 修复：补充逗号
+        '1, ',               
         'old.include, ',
         'old.apr, ',
         'CAST(old.initial_balance AS DECIMAL(20,4)), ',
         'CASE old.type ',
             'WHEN 100 THEN 1 ',  
             'WHEN 200 THEN 2 ',
-            'WHEN 300 THEN 3 ',  -- 修复：补充逗号
+            'WHEN 300 THEN 3 ',  
             'ELSE 4 END, ',
         'old.group_id + @group_shift, ',  
         'old.ranking, ',
@@ -205,7 +205,7 @@ BEGIN
             'ELSE 0 END, ',            
         'old.name, ',
         'old.book_id + @book_shift, ', 
-        'IF(old.parent_id = 0 OR old.parent_id IS NULL, -1, old.parent_id + @category_shift), ',  -- 修复：防止根节点(0)加上偏移量变成非法节点
+        'IF(old.parent_id = 0 OR old.parent_id IS NULL, -1, old.parent_id + @category_shift), ',
         'old.ranking, ',
         'CASE old.enable ',
             'WHEN 1 THEN 0 ',  
@@ -266,7 +266,7 @@ BEGIN
         'old.id + @tag_shift, ',      
         'old.name, ',
         'old.book_id + @book_shift, ',
-        'IF(old.parent_id = 0 OR old.parent_id IS NULL, -1, old.parent_id + @tag_shift), ',  -- 修复：防止根节点(0)被错误附加偏移量
+        'IF(old.parent_id = 0 OR old.parent_id IS NULL, -1, old.parent_id + @tag_shift), ', 
         'CAST(old.can_expense AS UNSIGNED), ',  
         'CAST(old.can_income AS UNSIGNED), ',
         'CAST(old.can_transfer AS UNSIGNED), ',
@@ -319,7 +319,7 @@ BEGIN
         @new_user_id, ', ',  
         'FROM_UNIXTIME(old.create_time / 1000), ',  
         'FROM_UNIXTIME(old.insert_at / 1000), ',    
-        '0 ',  -- 修复：去掉了 0 后面的逗号，防止报语法错误
+        '0 ',  
         'FROM ', @old_schema, '.t_user_balance_flow AS old ',
         'WHERE old.book_id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_book ',
@@ -345,7 +345,7 @@ BEGIN
         @new_user_id, ', ',  
         'FROM_UNIXTIME(b.create_time / 1000), ',  
         'FROM_UNIXTIME(b.insert_at / 1000), ',    
-        '0 ',  -- 修复：去掉了 0 后面的逗号，防止报语法错误
+        '0 ',  
         'FROM ', @old_schema, '.t_user_category_relation AS old ',
         'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  
         'ON old.balance_flow_id = b.id ',
@@ -375,7 +375,7 @@ BEGIN
         @new_user_id, ', ',  
         'FROM_UNIXTIME(b.create_time / 1000), ',  
         'FROM_UNIXTIME(b.insert_at / 1000), ',    
-        '0 ',               -- 修复：补充了与下一行拼接的逗号
+        '0 ',               
         'FROM ', @old_schema, '.t_user_tag_relation AS old ',
         'JOIN ', @old_schema, '.t_user_balance_flow AS b ',  
         'ON old.balance_flow_id = b.id ',
@@ -408,7 +408,7 @@ BEGIN
         @new_user_id, ', ',  
         'FROM_UNIXTIME(old.create_time / 1000), ',  
         'FROM_UNIXTIME(old.create_time / 1000), ',  
-        '0 ', -- 修复：去掉了 0 后面的逗号，防止报语法错误
+        '0 ', 
         'FROM ', @old_schema, '.t_flow_file AS old ',
         'WHERE old.flow_id IN (',
             'SELECT id FROM ', @old_schema, '.t_user_balance_flow AS tubf ',
@@ -429,7 +429,15 @@ BEGIN
         'UPDATE ', @new_schema, '.fortune_user_group_relation ',
         'SET default_group = 0 ',
         'WHERE user_id = ', @new_user_id,
-        '  AND group_id < ', @group_shift
+        '  AND group_id < ', @group_shift,
+        '  AND EXISTS (',
+        '      SELECT 1 FROM (',
+        '          SELECT 1 FROM ', @new_schema, '.fortune_user_group_relation ',
+        '          WHERE user_id = ', @new_user_id,
+        '            AND group_id >= ', @group_shift,
+        '            AND default_group = 1',
+        '      ) AS tmp',
+        '  )'
     );
     PREPARE stmt FROM @query; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
