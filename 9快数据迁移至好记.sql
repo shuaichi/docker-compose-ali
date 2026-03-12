@@ -95,7 +95,7 @@ BEGIN
                'old.role, ',
                'old.group_id + @group_shift, ',
                @new_user_id, ', ',
-               'tuu.default_group_id, ',
+               'IF(old.group_id = tuu.default_group_id, 1, 0), ',
                @new_user_id, ', ',  
                @new_user_id, ', ',  
                'NOW(), ',  
@@ -103,7 +103,7 @@ BEGIN
         'FROM ', @old_schema, '.t_user_user_group_relation AS old ',
         'INNER JOIN ',@old_schema, '.t_user_user AS tuu ',
         'ON old.user_id = tuu.id ',
-        'WHERE old.user_id = @old_user_id'  -- 修复：添加表别名前缀防止Ambiguous报错
+        'WHERE old.user_id = @old_user_id'
     );
     PREPARE stmt FROM @query; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
