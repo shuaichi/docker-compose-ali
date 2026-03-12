@@ -119,9 +119,9 @@ BEGIN
         'old.no, ',          
         'old.name, ',
         'CAST(old.balance AS DECIMAL(20,4)), ',
-        'CASE WHEN old.bill_day IS NOT NULL AND old.bill_day > 0 THEN ', -- ✅ 修复了日期拼装BUG
+        'CASE WHEN old.bill_day IS NOT NULL AND old.bill_day > 0 THEN ', -- 修复了日期拼装BUG，强制使用01月，防止非法日期报错
             'STR_TO_DATE(',
-                'CONCAT(YEAR(NOW()), "-", LPAD(MONTH(NOW()), 2, "0"), "-", LPAD(LEAST(old.bill_day, 31), 2, "0")), ',  
+                'CONCAT(YEAR(NOW()), "-01-", LPAD(LEAST(old.bill_day, 31), 2, "0")), ',
                 '"%Y-%m-%d"',
             ') ',
         'ELSE NULL END, ',  
@@ -447,6 +447,11 @@ BEGIN
 
 
     -- ========== 第三阶段 统一处理自增ID (DDL不能放在事务逻辑中) ==========
+    SET @query = CONCAT('SELECT COALESCE(MAX(group_id), 0) + 1 INTO @next_group_id FROM ', @new_schema, '.fortune_group');
+    PREPARE stmt FROM @query; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+    SET @query = CONCAT('ALTER TABLE ', @new_schema, '.fortune_group AUTO_INCREMENT = ', @next_group_id);
+    PREPARE stmt FROM @query; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
     SET @query = CONCAT('SELECT COALESCE(MAX(user_group_relation_id), 0) + 1 INTO @next_rel_id FROM ', @new_schema, '.fortune_user_group_relation');
     PREPARE stmt FROM @query; EXECUTE stmt; DEALLOCATE PREPARE stmt;
     SET @query = CONCAT('ALTER TABLE ', @new_schema, '.fortune_user_group_relation AUTO_INCREMENT = ', @next_rel_id);
